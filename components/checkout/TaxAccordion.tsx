@@ -2,14 +2,11 @@
 
 import { useState } from "react";
 import { currencySymbol } from "@/copy/layout_Copy";
-import {
-  serviceFeeLabel,
-  smallThoughtFeeLabel,
-  taxesAccordionLabel,
-} from "@/copy/checkout_Copy";
+import { useVerticalCopy } from "@/context/VerticalContext";
 import { SERVICE_FEE, SMALL_THOUGHT_FEE } from "@/lib/constants";
 
 export function TaxAccordion() {
+  const copy = useVerticalCopy().checkout;
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -19,7 +16,7 @@ export function TaxAccordion() {
         onClick={() => setExpanded(!expanded)}
         className="flex w-full items-center justify-between py-2 text-sm font-medium"
       >
-        <span>{taxesAccordionLabel}</span>
+        <span>{copy.taxesAccordionLabel}</span>
         <span className="flex items-center gap-2 text-gray-600">
           {currencySymbol}
           {SMALL_THOUGHT_FEE + SERVICE_FEE}
@@ -29,14 +26,14 @@ export function TaxAccordion() {
       {expanded && (
         <div className="mt-2 space-y-2 pl-2 text-sm text-gray-600">
           <div className="flex justify-between">
-            <span>{smallThoughtFeeLabel}</span>
+            <span>{copy.smallThoughtFeeLabel}</span>
             <span>
               {currencySymbol}
               {SMALL_THOUGHT_FEE}
             </span>
           </div>
           <div className="flex justify-between">
-            <span>{serviceFeeLabel}</span>
+            <span>{copy.serviceFeeLabel}</span>
             <span>
               {currencySymbol}
               {SERVICE_FEE}

@@ -1,0 +1,19 @@
+export const profilePageTitle = "Your Sabr profile";
+export const profilePageSubtitle =
+  "A record of impulses resisted, orders placed, and temptations catalogued.";
+export const impulsesResistedLabel = "Impulses resisted";
+export const impulsesResistedDetail = "Times you walked away instead of giving in";
+export const ordersPlacedLabel = "Orders placed";
+export const totalSabrMinutesLabel = "Total Sabr minutes waited";
+export const giveUpRateLabel = "Enlightenment rate";
+export const giveUpRateDetail = "Orders you couldn't wait for";
+export const mostTemptedVerticalLabel = "Most tempted vertical";
+export const mostTemptedCategoryLabel = "Most tempted category";
+export const activityHeatmapLabel = "Order activity";
+export const activityHeatmapLess = "Less";
+export const activityHeatmapMore = "More";
+export const orderHistoryLabel = "Order history";
+export const orderHistoryEmpty = "No orders yet. Browse something tempting.";
+export const orderStatusTracking = "Tracking";
+export const orderStatusDelivered = "Delivered";
+export const noDataLabel = "—";

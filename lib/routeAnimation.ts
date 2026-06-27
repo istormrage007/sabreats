@@ -1,4 +1,3 @@
-import { DRIVER_METERS_PER_TICK, ROUTE_PAUSE_PROGRESS } from "@/lib/constants";
 import { bearingDegrees, haversineMeters, type LatLng } from "@/lib/geo";
 
 export interface RouteSegment {
@@ -13,10 +12,7 @@ export interface RoutePath {
   totalMeters: number;
 }
 
-export type RouteAnimationPhase = "moving" | "paused";
-
 export interface RouteAnimationState {
-  phase: RouteAnimationPhase;
   distanceMeters: number;
   progress: number;
   position: LatLng;
@@ -79,57 +75,22 @@ export function getPositionAtDistance(
   };
 }
 
-export function createInitialAnimationState(
+/** Map delivery timeline progress (0–1) to a position along the route */
+export function getAnimationStateAtProgress(
   path: RoutePath,
+  timelineProgress: number,
 ): RouteAnimationState {
-  const { position, bearing, progress } = getPositionAtDistance(path, 0);
-  return {
-    phase: "moving",
-    distanceMeters: 0,
-    progress,
-    position,
-    bearing,
-  };
-}
-
-export function advanceRouteAnimation(
-  state: RouteAnimationState,
-  path: RoutePath,
-): RouteAnimationState {
-  if (path.totalMeters === 0 || state.phase === "paused") {
-    return state;
-  }
-
-  const pauseDistance = path.totalMeters * ROUTE_PAUSE_PROGRESS;
-  const nextDistance = state.distanceMeters + DRIVER_METERS_PER_TICK;
-
-  if (nextDistance >= pauseDistance) {
-    const pausedAt = getPositionAtDistance(path, pauseDistance);
-    return {
-      phase: "paused",
-      distanceMeters: pauseDistance,
-      progress: pausedAt.progress,
-      position: pausedAt.position,
-      bearing: pausedAt.bearing,
-    };
-  }
-
+  const clamped = Math.min(1, Math.max(0, timelineProgress));
+  const distanceMeters = path.totalMeters * clamped;
   const { position, bearing, progress } = getPositionAtDistance(
     path,
-    nextDistance,
+    distanceMeters,
   );
 
   return {
-    phase: "moving",
-    distanceMeters: nextDistance,
+    distanceMeters,
     progress,
     position,
     bearing,
   };
-}
-
-export function pickRandomSatirePauseMessage(
-  messages: readonly string[],
-): string {
-  return messages[Math.floor(Math.random() * messages.length)] ?? messages[0];
 }

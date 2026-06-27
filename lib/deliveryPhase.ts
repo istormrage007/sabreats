@@ -3,8 +3,7 @@ export type DeliveryPhase =
   | "routing"
   | "preparing"
   | "picked_up"
-  | "on_the_way"
-  | "delayed";
+  | "on_the_way";
 
 export type MapPhase = "locating" | "routing" | "driving";
 
@@ -14,16 +13,11 @@ const PICKED_UP_PROGRESS_MAX = 0.18;
 export function getDeliveryPhase(
   mapPhase: MapPhase,
   progress: number,
-  isPaused: boolean,
-  orderPlacedAt: number,
 ): DeliveryPhase {
   if (mapPhase === "locating") return "locating";
   if (mapPhase === "routing") return "routing";
-  if (isPaused) return "delayed";
 
-  const elapsedSec = (Date.now() - orderPlacedAt) / 1000;
-
-  if (progress < PREPARING_PROGRESS_MAX && elapsedSec < 90) {
+  if (progress < PREPARING_PROGRESS_MAX) {
     return "preparing";
   }
   if (progress < PICKED_UP_PROGRESS_MAX) {
@@ -44,7 +38,6 @@ export function isActiveStep(
   step: DeliveryPhaseStep,
   phase: DeliveryPhase,
 ): boolean {
-  if (phase === "delayed") return step === "on_the_way";
   if (phase === "preparing" || phase === "locating" || phase === "routing") {
     return step === "preparing";
   }
@@ -59,7 +52,7 @@ export function isCompletedStep(
   if (phase === "locating" || phase === "routing") return false;
   if (phase === "preparing") return false;
   if (phase === "picked_up") return step === "preparing";
-  if (phase === "on_the_way" || phase === "delayed") {
+  if (phase === "on_the_way") {
     return step === "preparing" || step === "picked_up";
   }
   return false;

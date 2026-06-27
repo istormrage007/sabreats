@@ -1,7 +1,7 @@
 "use client";
 
 import { currencySymbol } from "@/copy/layout_Copy";
-import { tipHeading, tipMostCommonBadge } from "@/copy/checkout_Copy";
+import { useVerticalCopy } from "@/context/VerticalContext";
 import { DEFAULT_TIP_INDEX, TIP_OPTIONS } from "@/lib/constants";
 
 interface TipSelectorProps {
@@ -10,9 +10,11 @@ interface TipSelectorProps {
 }
 
 export function TipSelector({ selectedTip, onTipChange }: TipSelectorProps) {
+  const copy = useVerticalCopy().checkout;
+
   return (
     <div>
-      <p className="mb-3 font-medium">{tipHeading}</p>
+      <p className="mb-3 font-medium">{copy.tipHeading}</p>
       <div className="flex flex-wrap gap-2">
         {TIP_OPTIONS.map((tip, index) => {
           const isSelected = selectedTip === tip;
@@ -32,7 +34,7 @@ export function TipSelector({ selectedTip, onTipChange }: TipSelectorProps) {
               {tip}
               {isDefault && isSelected && (
                 <span className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-sabr-green px-2 py-0.5 text-[10px] font-bold text-white">
-                  {tipMostCommonBadge}
+                  {copy.tipMostCommonBadge}
                 </span>
               )}
             </button>

@@ -2,11 +2,8 @@
 
 import Link from "next/link";
 import { currencySymbol } from "@/copy/layout_Copy";
-import {
-  activeOrdersItemCountSuffix,
-  activeOrdersTrackLabel,
-  etaMinutesSuffix,
-} from "@/copy/storefront_Copy";
+import { activeOrdersTrackLabel } from "@/copy/eats/storefront_Copy";
+import { getVerticalConfig } from "@/lib/verticals";
 import { useDeliveryEta } from "@/hooks/useDeliveryEta";
 import { getOrderItemCount, type StoredOrderSummary } from "@/lib/order";
 
@@ -18,34 +15,37 @@ export function ActiveOrderCard({ order }: ActiveOrderCardProps) {
   const minutesLeft = useDeliveryEta(
     order.orderPlacedAt,
     order.estimatedDeliveryMinutes,
-    false,
   );
   const itemCount = getOrderItemCount(order);
+  const verticalCopy = getVerticalConfig(order.vertical ?? "eats").copy.storefront;
 
   return (
     <Link
       href={`/order/${order.orderNumber}`}
-      className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface px-4 py-4 transition-colors hover:border-sabr-green/40 hover:bg-surface-muted"
+      className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 transition-colors hover:border-sabr-green/40 hover:bg-surface-muted sm:px-4 sm:py-3"
     >
       <div className="min-w-0">
-        <p className="font-semibold text-foreground">
+        <p className="text-sm font-semibold text-foreground">
           Order #{order.orderNumber}
+          <span className="ml-2 rounded-full bg-surface-muted px-2 py-0.5 text-[10px] font-semibold uppercase">
+            {verticalCopy.verticalLabel}
+          </span>
         </p>
-        <p className="mt-0.5 text-sm text-gray-500 dark:text-zinc-400">
-          {itemCount} {activeOrdersItemCountSuffix} · {currencySymbol}
+        <p className="mt-0.5 text-xs text-gray-500 dark:text-zinc-400">
+          {itemCount} {verticalCopy.activeOrdersItemCountSuffix} · {currencySymbol}
           {order.total}
         </p>
       </div>
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <div className="text-right">
-          <p className="text-2xl font-bold tabular-nums leading-none text-sabr-green">
+          <p className="text-xl font-bold tabular-nums leading-none text-sabr-green sm:text-2xl">
             {minutesLeft}
           </p>
-          <p className="text-xs text-gray-500 dark:text-zinc-400">
-            {etaMinutesSuffix}
+          <p className="text-[10px] text-gray-500 dark:text-zinc-400 sm:text-xs">
+            {verticalCopy.etaMinutesSuffix}
           </p>
         </div>
-        <span className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-black">
+        <span className="rounded-full bg-black px-3 py-1.5 text-xs font-medium text-white dark:bg-white dark:text-black sm:px-4 sm:py-2 sm:text-sm">
           {activeOrdersTrackLabel}
         </span>
       </div>

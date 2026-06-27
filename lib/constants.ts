@@ -10,9 +10,8 @@ export const ORDERS_STORAGE_KEY = "sabr-orders";
 export const MAX_TRACKABLE_ORDERS = 3;
 export const ORDERS_CHANGED_EVENT = "sabr-orders-changed";
 
-export const DRIVER_METERS_PER_TICK = 2;
-export const ROUTE_SIMULATION_TICK_MS = 1000;
-export const ROUTE_PAUSE_PROGRESS = 0.9;
+/** How often live tracking re-syncs scooter + progress bar to the delivery clock */
+export const DELIVERY_PROGRESS_TICK_MS = 250;
 export const OSRM_REQUEST_TIMEOUT_MS = 8000;
 
 export const CARTO_DARK_TILE_URL =
@@ -29,8 +28,10 @@ export const CARTO_TILE_ATTRIBUTION =
 
 export const OSRM_BASE_URL = "https://router.project-osrm.org";
 
-export const DEFAULT_ESTIMATED_DELIVERY_MINUTES = 47;
-export const PRIORITY_ETA_REDUCTION_MINUTES = 3;
-export const ETA_MINIMUM_MINUTES = 11;
-export const ETA_SECONDS_PER_DISPLAY_MINUTE = 90;
-export const ETA_PAUSE_BONUS_MINUTES = 5;
+export const DEFAULT_ESTIMATED_DELIVERY_MINUTES = 2;
+export const MAX_DELIVERY_MINUTES = 2;
+export const PRIORITY_ETA_REDUCTION_MINUTES = 1;
+export const ETA_MINIMUM_MINUTES = 0;
+/** @deprecated Deadline-based ETA; kept for compatibility */
+export const ETA_SECONDS_PER_DISPLAY_MINUTE = 60;
+export const ETA_PAUSE_BONUS_MINUTES = 0;

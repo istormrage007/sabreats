@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { currencySymbol } from "@/copy/layout_Copy";
-import { addButtonLabel, maxQuantityReachedMessage } from "@/copy/storefront_Copy";
+import { getVerticalConfig, isVerticalEnabled } from "@/lib/verticals";
 import { useCart } from "@/context/CartContext";
 import type { MenuItem } from "@/types/menu";
+import { useState } from "react";
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -12,25 +13,40 @@ interface MenuItemCardProps {
 
 export function MenuItemCard({ item }: MenuItemCardProps) {
   const { addItem, isAtMaxQuantity, showCapMessage } = useCart();
-  const atMax = isAtMaxQuantity(item.id);
+  const verticalCopy = getVerticalConfig(item.vertical).copy.storefront;
+  const atMax = isAtMaxQuantity(item.vertical, item.id);
+  const [imageError, setImageError] = useState(false);
+
+  const enabled = isVerticalEnabled(item.vertical);
 
   const handleAdd = () => {
-    const added = addItem(item.id);
+    if (!enabled) return;
+    const added = addItem(item.vertical, item.id);
     if (!added || atMax) {
-      showCapMessage(maxQuantityReachedMessage);
+      showCapMessage(verticalCopy.maxQuantityReachedMessage);
     }
   };
 
   return (
     <article className="flex flex-col">
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
-        <Image
-          src={item.imageUrl}
-          alt={item.name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-        />
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
+        {!imageError ? (
+          <Image
+            src={item.imageUrl}
+            alt={item.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-sm text-gray-400">
+            No image
+          </div>
+        )}
+        <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+          {verticalCopy.verticalLabel}
+        </span>
       </div>
       <div className="mt-3 flex flex-1 flex-col gap-1">
         <h3 className="text-base font-semibold leading-tight text-foreground">
@@ -45,11 +61,10 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
           <button
             type="button"
             onClick={handleAdd}
-            disabled={atMax}
-            className="rounded-full bg-sabr-green px-4
-            py-1 text-xs font-semibold text-white transition-colors hover:bg-[#05a858] disabled:cursor-not-allowed disabled:bg-gray-300"
+            disabled={atMax || !enabled}
+            className="rounded-full bg-sabr-green px-4 py-1 text-xs font-semibold text-white transition-colors hover:bg-[#05a858] disabled:cursor-not-allowed disabled:bg-gray-300"
           >
-            {addButtonLabel}
+            {verticalCopy.addButtonLabel}
           </button>
         </div>
       </div>

@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  priorityDeliveryDescription,
-  priorityDeliveryLabel,
-  priorityDeliveryPriceSuffix,
-  priorityOffShamePrimary,
-  priorityOffShameSecondary,
-} from "@/copy/checkout_Copy";
+import { useVerticalCopy } from "@/context/VerticalContext";
 
 interface PriorityDeliveryToggleProps {
   enabled: boolean;
@@ -17,20 +11,24 @@ export function PriorityDeliveryToggle({
   enabled,
   onChange,
 }: PriorityDeliveryToggleProps) {
+  const copy = useVerticalCopy().checkout;
+
   return (
     <div className="space-y-2">
       <div
         className={`flex items-center justify-between rounded-xl border p-4 transition-colors ${
-          enabled ? "border-border" : "animate-pulse border-amber-400 bg-amber-50/50 dark:bg-amber-950/30"
+          enabled
+            ? "border-border"
+            : "animate-pulse border-amber-400 bg-amber-50/50 dark:bg-amber-950/30"
         }`}
       >
         <div className="pr-4">
           <p className="font-medium">
-            {priorityDeliveryLabel}{" "}
-            <span className="text-gray-500">{priorityDeliveryPriceSuffix}</span>
+            {copy.priorityDeliveryLabel}{" "}
+            <span className="text-gray-500">{copy.priorityDeliveryPriceSuffix}</span>
           </p>
           <p className="mt-0.5 text-sm text-gray-500">
-            {priorityDeliveryDescription}
+            {copy.priorityDeliveryDescription}
           </p>
         </div>
         <button
@@ -51,8 +49,10 @@ export function PriorityDeliveryToggle({
       </div>
       {!enabled && (
         <div className="space-y-1 px-1 text-sm">
-          <p className="text-amber-800">{priorityOffShamePrimary}</p>
-          <p className="text-gray-500">{priorityOffShameSecondary}</p>
+          <p className="text-amber-800 dark:text-amber-200">
+            {copy.priorityOffShamePrimary}
+          </p>
+          <p className="text-gray-500">{copy.priorityOffShameSecondary}</p>
         </div>
       )}
     </div>

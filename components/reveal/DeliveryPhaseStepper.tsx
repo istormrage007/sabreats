@@ -1,8 +1,6 @@
-import {
-  deliveryPhaseOnTheWayLabel,
-  deliveryPhasePickedUpLabel,
-  deliveryPhasePreparingLabel,
-} from "@/copy/order_Copy";
+"use client";
+
+import { useVerticalCopy } from "@/context/VerticalContext";
 import {
   DELIVERY_PHASE_STEPS,
   isActiveStep,
@@ -11,17 +9,19 @@ import {
   type DeliveryPhaseStep,
 } from "@/lib/deliveryPhase";
 
-const stepLabels: Record<DeliveryPhaseStep, string> = {
-  preparing: deliveryPhasePreparingLabel,
-  picked_up: deliveryPhasePickedUpLabel,
-  on_the_way: deliveryPhaseOnTheWayLabel,
-};
-
 interface DeliveryPhaseStepperProps {
   phase: DeliveryPhase;
 }
 
 export function DeliveryPhaseStepper({ phase }: DeliveryPhaseStepperProps) {
+  const copy = useVerticalCopy().order;
+
+  const stepLabels: Record<DeliveryPhaseStep, string> = {
+    preparing: copy.deliveryPhasePreparingLabel,
+    picked_up: copy.deliveryPhasePickedUpLabel,
+    on_the_way: copy.deliveryPhaseOnTheWayLabel,
+  };
+
   return (
     <ol className="flex items-center gap-1">
       {DELIVERY_PHASE_STEPS.map((step, index) => {
@@ -32,12 +32,12 @@ export function DeliveryPhaseStepper({ phase }: DeliveryPhaseStepperProps) {
           <li key={step} className="flex min-w-0 flex-1 items-center gap-1">
             <div className="flex min-w-0 flex-col items-center gap-1.5">
               <span
-                className={`flex h-2.5 w-2.5 shrink-0 rounded-full transition-colors ${
+                className={`flex h-2.5 w-2.5 shrink-0 rounded-full ring-4 transition-colors ${
                   active
-                    ? "bg-sabr-green ring-4 ring-sabr-green/20"
+                    ? "bg-sabr-green ring-sabr-green/20"
                     : completed
-                      ? "bg-sabr-green"
-                      : "bg-surface-muted"
+                      ? "bg-sabr-green ring-transparent"
+                      : "bg-surface-muted ring-transparent"
                 }`}
               />
               <span

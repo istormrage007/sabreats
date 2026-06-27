@@ -1,4 +1,4 @@
-import { menuItems } from "@/data/menu";
+import { getAllCatalogItems, getCatalog } from "@/lib/verticals";
 import {
   MAX_LINE_ITEMS,
   MAX_QUANTITY_PER_ITEM,
@@ -6,8 +6,10 @@ import {
   SMALL_THOUGHT_FEE,
 } from "@/lib/constants";
 import type { MenuItem } from "@/types/menu";
+import type { VerticalId } from "@/types/vertical";
 
 export interface CartLine {
+  vertical: VerticalId;
   itemId: string;
   quantity: number;
 }
@@ -17,18 +19,30 @@ export interface CartLineWithDetails extends CartLine {
   lineTotal: number;
 }
 
-export function getMenuItem(itemId: string): MenuItem | undefined {
-  return menuItems.find((item) => item.id === itemId);
+export function getMenuItem(
+  vertical: VerticalId,
+  itemId: string,
+): MenuItem | undefined {
+  return getCatalog(vertical).items.find((item) => item.id === itemId);
+}
+
+export function getMenuItemAny(
+  vertical: VerticalId,
+  itemId: string,
+): MenuItem | undefined {
+  return getMenuItem(vertical, itemId);
 }
 
 export function clampQuantity(quantity: number): number {
   return Math.max(0, Math.min(quantity, MAX_QUANTITY_PER_ITEM));
 }
 
-export function getCartLinesWithDetails(lines: CartLine[]): CartLineWithDetails[] {
+export function getCartLinesWithDetails(
+  lines: CartLine[],
+): CartLineWithDetails[] {
   return lines
     .map((line) => {
-      const item = getMenuItem(line.itemId);
+      const item = getMenuItem(line.vertical, line.itemId);
       if (!item) return null;
       return {
         ...line,
@@ -50,8 +64,18 @@ export function getItemCount(lines: CartLine[]): number {
   return lines.reduce((sum, line) => sum + line.quantity, 0);
 }
 
-export function canAddItem(lines: CartLine[], itemId: string): boolean {
-  const existing = lines.find((line) => line.itemId === itemId);
+function lineKey(vertical: VerticalId, itemId: string) {
+  return `${vertical}:${itemId}`;
+}
+
+export function canAddItem(
+  lines: CartLine[],
+  vertical: VerticalId,
+  itemId: string,
+): boolean {
+  const existing = lines.find(
+    (line) => line.vertical === vertical && line.itemId === itemId,
+  );
   if (existing && existing.quantity >= MAX_QUANTITY_PER_ITEM) {
     return false;
   }
@@ -82,6 +106,8 @@ export interface OrderPayload {
   payload: string;
   riddleAnswer?: string;
   quantity: number;
+  menuCategory: string;
+  vertical: VerticalId;
 }
 
 export function getOrderPayloads(lines: CartLine[]): OrderPayload[] {
@@ -92,5 +118,27 @@ export function getOrderPayloads(lines: CartLine[]): OrderPayload[] {
     payload: line.item.payload,
     riddleAnswer: line.item.riddleAnswer,
     quantity: line.quantity,
+    menuCategory: line.item.category,
+    vertical: line.vertical,
   }));
 }
+
+export function getPrimaryVertical(lines: CartLine[]): VerticalId {
+  const first = lines[0];
+  if (!first) return "eats";
+  const counts = new Map<VerticalId, number>();
+  for (const line of lines) {
+    counts.set(line.vertical, (counts.get(line.vertical) ?? 0) + line.quantity);
+  }
+  let best = first.vertical;
+  let bestCount = 0;
+  for (const [vertical, count] of counts) {
+    if (count > bestCount) {
+      best = vertical;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+export { lineKey, getAllCatalogItems };

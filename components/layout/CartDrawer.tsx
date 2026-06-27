@@ -5,21 +5,9 @@ import { useRouter } from "next/navigation";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { currencySymbol } from "@/copy/layout_Copy";
-import {
-  cartDrawerCloseAriaLabel,
-  cartDrawerTitle,
-  cartEmptyMessage,
-  cartEmptySubtext,
-  checkoutCtaLabel,
-  quantityDecreaseAriaLabel,
-  quantityIncreaseAriaLabel,
-  sabrOneBannerCta,
-  sabrOneBannerHeadline,
-  subtotalLabel,
-} from "@/copy/cartDrawer_Copy";
-import { maxQuantityReachedMessage } from "@/copy/storefront_Copy";
 import { useCart } from "@/context/CartContext";
-import { getCartLinesWithDetails } from "@/lib/cart";
+import { getCartLinesWithDetails, getPrimaryVertical, lineKey } from "@/lib/cart";
+import { getVerticalCopy } from "@/lib/verticals";
 import { MAX_QUANTITY_PER_ITEM } from "@/lib/constants";
 
 export function CartDrawer() {
@@ -37,6 +25,8 @@ export function CartDrawer() {
 
   const cartLines = getCartLinesWithDetails(lines);
   const isEmpty = cartLines.length === 0;
+  const primaryVertical = getPrimaryVertical(lines);
+  const copy = getVerticalCopy(isEmpty ? "eats" : primaryVertical).cartDrawer;
 
   useEffect(() => {
     if (isDrawerOpen) {
@@ -57,12 +47,17 @@ export function CartDrawer() {
 
   if (!isDrawerOpen) return null;
 
-  const handleIncrease = (itemId: string, currentQty: number) => {
+  const handleIncrease = (
+    vertical: typeof primaryVertical,
+    itemId: string,
+    currentQty: number,
+  ) => {
     if (currentQty >= MAX_QUANTITY_PER_ITEM) {
-      showCapMessage(maxQuantityReachedMessage);
+      const msg = getVerticalCopy(vertical).storefront.maxQuantityReachedMessage;
+      showCapMessage(msg);
       return;
     }
-    setQuantity(itemId, currentQty + 1);
+    setQuantity(vertical, itemId, currentQty + 1);
   };
 
   const handleCheckout = () => {
@@ -77,25 +72,25 @@ export function CartDrawer() {
         type="button"
         className="absolute inset-0 bg-black/40"
         onClick={closeDrawer}
-        aria-label={cartDrawerCloseAriaLabel}
+        aria-label={copy.cartDrawerCloseAriaLabel}
       />
       <aside className="relative flex h-full w-full max-w-md flex-col bg-surface shadow-2xl sm:w-[400px]">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="text-lg font-bold">{cartDrawerTitle}</h2>
+          <h2 className="text-lg font-bold">{copy.cartDrawerTitle}</h2>
           <button
             type="button"
             onClick={closeDrawer}
             className="text-2xl leading-none text-gray-500"
-            aria-label={cartDrawerCloseAriaLabel}
+            aria-label={copy.cartDrawerCloseAriaLabel}
           >
             ×
           </button>
         </div>
 
-        <Banner headline={sabrOneBannerHeadline} ctaLabel={sabrOneBannerCta} />
+        <Banner headline={copy.sabrOneBannerHeadline} ctaLabel={copy.sabrOneBannerCta} />
 
         {capMessage && (
-          <p className="bg-amber-50 px-5 py-2 text-sm text-amber-800">
+          <p className="bg-amber-50 px-5 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
             {capMessage}
           </p>
         )}
@@ -104,14 +99,14 @@ export function CartDrawer() {
           {isEmpty ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="mb-4 text-6xl opacity-30">🛒</div>
-              <p className="text-lg font-semibold">{cartEmptyMessage}</p>
-              <p className="mt-1 text-sm text-gray-500">{cartEmptySubtext}</p>
+              <p className="text-lg font-semibold">{copy.cartEmptyMessage}</p>
+              <p className="mt-1 text-sm text-gray-500">{copy.cartEmptySubtext}</p>
             </div>
           ) : (
             <ul className="space-y-4">
               {cartLines.map((line) => (
                 <li
-                  key={line.itemId}
+                  key={lineKey(line.vertical, line.itemId)}
                   className="flex items-start justify-between gap-3 border-b border-border pb-4"
                 >
                   <div className="min-w-0 flex-1">
@@ -124,8 +119,10 @@ export function CartDrawer() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      aria-label={quantityDecreaseAriaLabel}
-                      onClick={() => setQuantity(line.itemId, line.quantity - 1)}
+                      aria-label={copy.quantityDecreaseAriaLabel}
+                      onClick={() =>
+                        setQuantity(line.vertical, line.itemId, line.quantity - 1)
+                      }
                       className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-lg"
                     >
                       −
@@ -135,8 +132,10 @@ export function CartDrawer() {
                     </span>
                     <button
                       type="button"
-                      aria-label={quantityIncreaseAriaLabel}
-                      onClick={() => handleIncrease(line.itemId, line.quantity)}
+                      aria-label={copy.quantityIncreaseAriaLabel}
+                      onClick={() =>
+                        handleIncrease(line.vertical, line.itemId, line.quantity)
+                      }
                       disabled={line.quantity >= MAX_QUANTITY_PER_ITEM}
                       className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-lg disabled:opacity-40"
                     >
@@ -152,7 +151,7 @@ export function CartDrawer() {
         <div className="border-t border-border px-5 py-4">
           {!isEmpty && (
             <div className="mb-4 flex justify-between text-sm">
-              <span className="text-gray-600">{subtotalLabel}</span>
+              <span className="text-gray-600">{copy.subtotalLabel}</span>
               <span className="font-semibold">
                 {currencySymbol}
                 {subtotal}
@@ -165,7 +164,7 @@ export function CartDrawer() {
             disabled={isEmpty}
             onClick={handleCheckout}
           >
-            {checkoutCtaLabel}
+            {copy.checkoutCtaLabel}
           </Button>
         </div>
       </aside>

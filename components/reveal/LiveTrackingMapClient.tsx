@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import L from "leaflet";
 import {
   MapContainer,
@@ -15,29 +15,11 @@ import {
   CARTO_DARK_TILE_URL,
   CARTO_LIGHT_TILE_URL,
   CARTO_TILE_ATTRIBUTION,
-  ROUTE_SIMULATION_TICK_MS,
 } from "@/lib/constants";
 import { useTheme } from "@/context/ThemeContext";
-import {
-  deliveryPhaseDelayedLabel,
-  deliveryPhaseOnTheWayLabel,
-  deliveryPhaseOnTheWayMessages,
-  deliveryPhasePickedUpDetail,
-  deliveryPhasePickedUpLabel,
-  deliveryPhasePreparingDetail,
-  deliveryPhasePreparingLabel,
-  estimatedArrivalLabel,
-  etaLabel,
-  etaMinutesSuffix,
-  giveUpButtonLabel,
-  locationDeniedMessage,
-  locationLoadingMessage,
-  receiptOrderNumberPrefix,
-  routingLoadingMessage,
-  satirePauseMessages,
-  trackingPageTitle,
-} from "@/copy/order_Copy";
+import { useVerticalCopy } from "@/context/VerticalContext";
 import { useDeliveryEta } from "@/hooks/useDeliveryEta";
+import { useDeliveryProgress } from "@/hooks/useDeliveryProgress";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { getEstimatedArrivalTime } from "@/lib/deliveryEta";
 import { getDeliveryPhase } from "@/lib/deliveryPhase";
@@ -45,11 +27,8 @@ import { generateStablePickupOffset, type LatLng } from "@/lib/geo";
 import type { StoredOrderSummary } from "@/lib/order";
 import { fetchOsrmRoute } from "@/lib/routing";
 import {
-  advanceRouteAnimation,
   buildRoutePath,
-  createInitialAnimationState,
-  pickRandomSatirePauseMessage,
-  type RouteAnimationState,
+  getAnimationStateAtProgress,
   type RoutePath,
 } from "@/lib/routeAnimation";
 
@@ -134,6 +113,7 @@ export default function LiveTrackingMapClient({
   order,
   onGiveUp,
 }: LiveTrackingMapClientProps) {
+  const copy = useVerticalCopy().order;
   const geo = useGeolocation();
   const { theme } = useTheme();
   const tileUrl =
@@ -151,15 +131,12 @@ export default function LiveTrackingMapClient({
 
   const [routePoints, setRoutePoints] = useState<LatLng[]>([]);
   const [routePath, setRoutePath] = useState<RoutePath | null>(null);
-  const [animation, setAnimation] = useState<RouteAnimationState | null>(null);
   const [statusIndex, setStatusIndex] = useState(0);
-  const [pauseMessage, setPauseMessage] = useState<string | null>(null);
   const [phaseTick, setPhaseTick] = useState(0);
-  const pauseTriggered = useRef(false);
 
-  const isPaused = animation?.phase === "paused";
-  const minutesLeft = useDeliveryEta(orderPlacedAt, initialEta, isPaused);
-  const arrivalTime = getEstimatedArrivalTime(orderPlacedAt, minutesLeft);
+  const deliveryProgress = useDeliveryProgress(orderPlacedAt, initialEta);
+  const minutesLeft = useDeliveryEta(orderPlacedAt, initialEta);
+  const arrivalTime = getEstimatedArrivalTime(orderPlacedAt, initialEta);
 
   const mapPhase =
     geo.status === "loading"
@@ -168,15 +145,15 @@ export default function LiveTrackingMapClient({
         ? "routing"
         : "driving";
 
-  const routeProgress =
-    mapPhase === "driving" ? (animation?.progress ?? 0) : 0;
-
-  const deliveryPhase = getDeliveryPhase(
-    mapPhase,
-    routeProgress,
-    isPaused,
-    orderPlacedAt,
+  const animation = useMemo(
+    () =>
+      routePath
+        ? getAnimationStateAtProgress(routePath, deliveryProgress)
+        : null,
+    [routePath, deliveryProgress],
   );
+
+  const deliveryPhase = getDeliveryPhase(mapPhase, deliveryProgress);
 
   useEffect(() => {
     if (!pickup || !delivery) return;
@@ -188,35 +165,12 @@ export default function LiveTrackingMapClient({
       const path = buildRoutePath(points);
       setRoutePoints(points);
       setRoutePath(path);
-      setAnimation(createInitialAnimationState(path));
     });
 
     return () => {
       cancelled = true;
     };
   }, [pickup, delivery]);
-
-  useEffect(() => {
-    if (!routePath || mapPhase !== "driving") return;
-
-    const interval = setInterval(() => {
-      setAnimation((prev) => {
-        if (!prev) return prev;
-        const next = advanceRouteAnimation(prev, routePath);
-
-        if (next.phase === "paused" && !pauseTriggered.current) {
-          pauseTriggered.current = true;
-          setPauseMessage(
-            pickRandomSatirePauseMessage(satirePauseMessages),
-          );
-        }
-
-        return next;
-      });
-    }, ROUTE_SIMULATION_TICK_MS);
-
-    return () => clearInterval(interval);
-  }, [routePath, mapPhase]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -231,54 +185,42 @@ export default function LiveTrackingMapClient({
 
     const interval = setInterval(() => {
       setStatusIndex(
-        (prev) => (prev + 1) % deliveryPhaseOnTheWayMessages.length,
+        (prev) => (prev + 1) % copy.deliveryPhaseOnTheWayMessages.length,
       );
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [deliveryPhase]);
+  }, [deliveryPhase, copy.deliveryPhaseOnTheWayMessages.length]);
 
   const phaseHeadline = useMemo(() => {
     switch (deliveryPhase) {
       case "locating":
       case "routing":
       case "preparing":
-        return deliveryPhasePreparingLabel;
+        return copy.deliveryPhasePreparingLabel;
       case "picked_up":
-        return deliveryPhasePickedUpLabel;
+        return copy.deliveryPhasePickedUpLabel;
       case "on_the_way":
-        return deliveryPhaseOnTheWayLabel;
-      case "delayed":
-        return deliveryPhaseDelayedLabel;
+        return copy.deliveryPhaseOnTheWayLabel;
     }
-  }, [deliveryPhase, phaseTick]);
+  }, [deliveryPhase, phaseTick, copy]);
 
   const phaseDetail = useMemo(() => {
     switch (deliveryPhase) {
       case "locating":
-        return locationLoadingMessage;
+        return copy.locationLoadingMessage;
       case "routing":
-        return routingLoadingMessage;
+        return copy.routingLoadingMessage;
       case "preparing":
-        return deliveryPhasePreparingDetail;
+        return copy.deliveryPhasePreparingDetail;
       case "picked_up":
-        return deliveryPhasePickedUpDetail;
+        return copy.deliveryPhasePickedUpDetail;
       case "on_the_way":
-        return deliveryPhaseOnTheWayMessages[statusIndex];
-      case "delayed":
-        return pauseMessage ?? satirePauseMessages[0];
+        return copy.deliveryPhaseOnTheWayMessages[statusIndex];
     }
-  }, [deliveryPhase, statusIndex, pauseMessage, phaseTick]);
+  }, [deliveryPhase, statusIndex, phaseTick, copy]);
 
-  const progressBarWidth = useMemo(() => {
-    if (deliveryPhase === "locating" || deliveryPhase === "routing") {
-      return 3;
-    }
-    if (deliveryPhase === "preparing") return 8;
-    if (deliveryPhase === "picked_up") return 16;
-    if (deliveryPhase === "delayed") return 92;
-    return Math.min(routeProgress, 0.92) * 100;
-  }, [deliveryPhase, routeProgress]);
+  const progressBarWidth = deliveryProgress * 100;
 
   const mapCenter = delivery ?? { lat: 28.6129, lng: 77.2295 };
   const boundsPoints =
@@ -289,42 +231,42 @@ export default function LiveTrackingMapClient({
     : createDriverIcon(0);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-3">
       <div className="flex shrink-0 items-baseline justify-between gap-4">
         <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-          {trackingPageTitle}
+          {copy.trackingPageTitle}
         </h1>
         <p className="shrink-0 text-xs font-medium text-gray-500 dark:text-zinc-400">
-          {receiptOrderNumberPrefix}
+          {copy.receiptOrderNumberPrefix}
           {orderNumber}
         </p>
       </div>
 
       {geo.usedFallback && geo.status !== "loading" && (
         <p className="shrink-0 text-sm text-gray-500 dark:text-zinc-400">
-          {locationDeniedMessage}
+          {copy.locationDeniedMessage}
         </p>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
-        <div className="shrink-0 border-b border-border px-4 py-4 sm:px-5">
-          <div className="flex items-end justify-between gap-4">
-            <div>
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+        <div className="min-w-0 shrink-0 border-b border-border px-4 py-4 sm:px-5">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
-                {etaLabel}
+                {copy.etaLabel}
               </p>
               <p className="mt-1 flex items-baseline gap-1.5">
-                <span className="text-4xl font-bold tabular-nums tracking-tight text-foreground sm:text-5xl">
+                <span className="inline-flex w-[2.5ch] shrink-0 justify-start text-4xl font-bold tabular-nums tracking-tight text-foreground sm:text-5xl">
                   {minutesLeft}
                 </span>
-                <span className="text-base font-medium text-gray-500 dark:text-zinc-400 sm:text-lg">
-                  {etaMinutesSuffix}
+                <span className="shrink-0 text-base font-medium text-gray-500 dark:text-zinc-400 sm:text-lg">
+                  {copy.etaMinutesSuffix}
                 </span>
               </p>
             </div>
-            <div className="pb-1 text-right">
+            <div className="shrink-0 pb-1 text-right">
               <p className="text-xs text-gray-500 dark:text-zinc-400">
-                {estimatedArrivalLabel}
+                {copy.estimatedArrivalLabel}
               </p>
               <p className="text-sm font-semibold tabular-nums text-foreground">
                 {arrivalTime}
@@ -332,25 +274,25 @@ export default function LiveTrackingMapClient({
             </div>
           </div>
 
-          <div className="mt-3">
+          <div className="mt-3 min-w-0">
             <DeliveryPhaseStepper phase={deliveryPhase} />
           </div>
 
           <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-surface-muted">
             <div
-              className="h-full rounded-full bg-sabr-green transition-all duration-1000 ease-out"
+              className="h-full rounded-full bg-sabr-green transition-[width] duration-300 ease-linear"
               style={{ width: `${progressBarWidth}%` }}
             />
           </div>
 
-          <p className="mt-2.5 text-sm text-gray-500 dark:text-zinc-400">
+          <p className="mt-2.5 min-h-[2.5rem] min-w-0 text-sm leading-snug text-gray-500 line-clamp-2 dark:text-zinc-400">
             <span className="font-medium text-foreground">{phaseHeadline}</span>
             <span className="mx-1.5 text-gray-300 dark:text-zinc-600">·</span>
             {phaseDetail}
           </p>
         </div>
 
-        <div className="relative min-h-48 flex-1">
+        <div className="relative min-h-48 min-w-0 flex-1">
           <MapContainer
             center={[mapCenter.lat, mapCenter.lng]}
             zoom={14}
@@ -408,7 +350,7 @@ export default function LiveTrackingMapClient({
 
       <div className="shrink-0 pb-1 pt-1">
         <Button variant="primary" fullWidth onClick={onGiveUp}>
-          {giveUpButtonLabel}
+          {copy.giveUpButtonLabel}
         </Button>
       </div>
     </div>

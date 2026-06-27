@@ -1,27 +1,30 @@
 "use client";
 
-import { categoryAllLabel, categoryFilterAriaLabel } from "@/copy/storefront_Copy";
 import type { Category } from "@/types/menu";
 
 interface CategoryFilterProps {
   categories: Category[];
   activeCategory: string | null;
   onCategoryChange: (categoryId: string | null) => void;
+  ariaLabel?: string;
+  allLabel?: string;
 }
 
 export function CategoryFilter({
   categories,
   activeCategory,
   onCategoryChange,
+  ariaLabel = "Filter by category",
+  allLabel = "All",
 }: CategoryFilterProps) {
   return (
     <div
       className="flex gap-2 overflow-x-auto pb-2"
       role="tablist"
-      aria-label={categoryFilterAriaLabel}
+      aria-label={ariaLabel}
     >
       <FilterChip
-        label={categoryAllLabel}
+        label={allLabel}
         isActive={activeCategory === null}
         onClick={() => onCategoryChange(null)}
       />

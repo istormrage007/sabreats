@@ -1,9 +1,12 @@
 import {
+  MAX_DELIVERY_MINUTES,
   MAX_TRACKABLE_ORDERS,
   ORDER_STORAGE_KEY,
   ORDERS_CHANGED_EVENT,
   ORDERS_STORAGE_KEY,
 } from "@/lib/constants";
+import { clampEstimatedDeliveryMinutes, getDeliveryDeadlineMs, isDeliveryExpired } from "@/lib/deliveryEta";
+import type { VerticalId } from "@/types/vertical";
 
 export type OrderStatus = "tracking" | "delivered";
 
@@ -12,6 +15,8 @@ export interface StoredOrderSummary {
   orderPlacedAt: number;
   estimatedDeliveryMinutes: number;
   status: OrderStatus;
+  vertical: VerticalId;
+  deliveredAt?: number;
   subtotal: number;
   priorityDelivery: boolean;
   priorityFee: number;
@@ -25,6 +30,8 @@ export interface StoredOrderSummary {
     payload: string;
     riddleAnswer?: string;
     quantity: number;
+    menuCategory?: string;
+    vertical?: VerticalId;
   }[];
   lines: { name: string; quantity: number; lineTotal: number }[];
 }
@@ -98,8 +105,11 @@ function normalizeOrder(order: StoredOrderSummary): StoredOrderSummary {
   return {
     ...order,
     status: order.status ?? "tracking",
+    vertical: order.vertical ?? "eats",
     orderPlacedAt: order.orderPlacedAt ?? Date.now(),
-    estimatedDeliveryMinutes: order.estimatedDeliveryMinutes ?? 47,
+    estimatedDeliveryMinutes: clampEstimatedDeliveryMinutes(
+      order.estimatedDeliveryMinutes ?? MAX_DELIVERY_MINUTES,
+    ),
   };
 }
 
@@ -107,6 +117,32 @@ function persistOrders(orders: StoredOrderSummary[]) {
   localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
   invalidateCache();
   emitOrdersChanged();
+}
+
+function expireStaleTrackingOrders(orders: StoredOrderSummary[]): StoredOrderSummary[] {
+  let changed = false;
+  const updated = orders.map((order) => {
+    if (
+      order.status === "tracking" &&
+      isDeliveryExpired(order.orderPlacedAt, order.estimatedDeliveryMinutes)
+    ) {
+      changed = true;
+      return {
+        ...order,
+        status: "delivered" as const,
+        deliveredAt: getDeliveryDeadlineMs(
+          order.orderPlacedAt,
+          order.estimatedDeliveryMinutes,
+        ),
+      };
+    }
+    return order;
+  });
+  if (changed) {
+    persistOrders(updated);
+    return updated;
+  }
+  return orders;
 }
 
 export function getAllOrdersSnapshot(): StoredOrderSummary[] {
@@ -119,8 +155,9 @@ export function getAllOrdersSnapshot(): StoredOrderSummary[] {
     return cachedOrders ?? EMPTY_ORDERS;
   }
 
-  cachedRaw = raw;
-  cachedOrders = parseOrders(raw);
+  const orders = expireStaleTrackingOrders(parseOrders(raw));
+  cachedRaw = localStorage.getItem(ORDERS_STORAGE_KEY);
+  cachedOrders = orders;
   rebuildTrackingCache(cachedOrders);
   return cachedOrders;
 }
@@ -178,7 +215,11 @@ export function addOrder(
 export function markOrderDelivered(orderNumber: string): void {
   const orders = getAllOrdersSnapshot().map((order) =>
     order.orderNumber === orderNumber
-      ? { ...order, status: "delivered" as const }
+      ? {
+          ...order,
+          status: "delivered" as const,
+          deliveredAt: Date.now(),
+        }
       : order,
   );
   persistOrders(orders);

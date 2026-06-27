@@ -9,11 +9,11 @@ const LiveTrackingMapClient = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-3">
         <h1 className="shrink-0 text-xl font-bold tracking-tight sm:text-2xl">
           {trackingPageTitle}
         </h1>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-surface">
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-surface">
           <div className="shrink-0 space-y-3 border-b border-border px-4 py-4 sm:px-5">
             <div className="h-3 w-20 animate-pulse rounded bg-surface-muted" />
             <div className="h-12 w-28 animate-pulse rounded bg-surface-muted" />

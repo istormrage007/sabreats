@@ -15,7 +15,9 @@ import {
   getSubtotal,
   type CartLine,
 } from "@/lib/cart";
+import { recordCartClosedWithItems, recordCartEmptied } from "@/lib/profileStats";
 import { MAX_QUANTITY_PER_ITEM } from "@/lib/constants";
+import type { VerticalId } from "@/types/vertical";
 
 interface CartContextValue {
   lines: CartLine[];
@@ -25,12 +27,16 @@ interface CartContextValue {
   capMessage: string | null;
   openDrawer: () => void;
   closeDrawer: () => void;
-  addItem: (itemId: string) => boolean;
-  removeItem: (itemId: string) => void;
-  setQuantity: (itemId: string, quantity: number) => boolean;
+  addItem: (vertical: VerticalId, itemId: string) => boolean;
+  removeItem: (vertical: VerticalId, itemId: string) => void;
+  setQuantity: (
+    vertical: VerticalId,
+    itemId: string,
+    quantity: number,
+  ) => boolean;
   clearCart: () => void;
   clearCapMessage: () => void;
-  isAtMaxQuantity: (itemId: string) => boolean;
+  isAtMaxQuantity: (vertical: VerticalId, itemId: string) => boolean;
   showCapMessage: (message: string) => void;
 }
 
@@ -42,63 +48,96 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [capMessage, setCapMessage] = useState<string | null>(null);
 
   const openDrawer = useCallback(() => setIsDrawerOpen(true), []);
-  const closeDrawer = useCallback(() => setIsDrawerOpen(false), []);
+  const closeDrawer = useCallback(() => {
+    setLines((prev) => {
+      if (prev.length > 0) {
+        recordCartClosedWithItems(prev.reduce((s, l) => s + l.quantity, 0));
+      }
+      return prev;
+    });
+    setIsDrawerOpen(false);
+  }, []);
   const clearCapMessage = useCallback(() => setCapMessage(null), []);
   const showCapMessage = useCallback((message: string) => {
     setCapMessage(message);
   }, []);
 
-  const addItem = useCallback((itemId: string): boolean => {
-    let added = false;
-    setLines((prev) => {
-      const existing = prev.find((line) => line.itemId === itemId);
-      if (existing && existing.quantity >= MAX_QUANTITY_PER_ITEM) {
-        return prev;
+  const addItem = useCallback(
+    (vertical: VerticalId, itemId: string): boolean => {
+      let added = false;
+      setLines((prev) => {
+        const existing = prev.find(
+          (line) => line.vertical === vertical && line.itemId === itemId,
+        );
+        if (existing && existing.quantity >= MAX_QUANTITY_PER_ITEM) {
+          return prev;
+        }
+        if (!canAddItem(prev, vertical, itemId)) {
+          return prev;
+        }
+        added = true;
+        if (existing) {
+          return prev.map((line) =>
+            line.vertical === vertical && line.itemId === itemId
+              ? { ...line, quantity: clampQuantity(line.quantity + 1) }
+              : line,
+          );
+        }
+        return [...prev, { vertical, itemId, quantity: 1 }];
+      });
+      if (added) {
+        setIsDrawerOpen(true);
       }
-      if (!canAddItem(prev, itemId)) {
-        return prev;
+      return added;
+    },
+    [],
+  );
+
+  const removeItem = useCallback((vertical: VerticalId, itemId: string) => {
+    setLines((prev) =>
+      prev.filter(
+        (line) => !(line.vertical === vertical && line.itemId === itemId),
+      ),
+    );
+  }, []);
+
+  const setQuantity = useCallback(
+    (vertical: VerticalId, itemId: string, quantity: number): boolean => {
+      const clamped = clampQuantity(quantity);
+      if (quantity > MAX_QUANTITY_PER_ITEM) {
+        return false;
       }
-      added = true;
-      if (existing) {
+      setLines((prev) => {
+        if (clamped === 0) {
+          return prev.filter(
+            (line) => !(line.vertical === vertical && line.itemId === itemId),
+          );
+        }
         return prev.map((line) =>
-          line.itemId === itemId
-            ? { ...line, quantity: clampQuantity(line.quantity + 1) }
+          line.vertical === vertical && line.itemId === itemId
+            ? { ...line, quantity: clamped }
             : line,
         );
-      }
-      return [...prev, { itemId, quantity: 1 }];
-    });
-    if (added) {
-      setIsDrawerOpen(true);
-    }
-    return added;
-  }, []);
+      });
+      return true;
+    },
+    [],
+  );
 
-  const removeItem = useCallback((itemId: string) => {
-    setLines((prev) => prev.filter((line) => line.itemId !== itemId));
-  }, []);
-
-  const setQuantity = useCallback((itemId: string, quantity: number): boolean => {
-    const clamped = clampQuantity(quantity);
-    if (quantity > MAX_QUANTITY_PER_ITEM) {
-      return false;
-    }
+  const clearCart = useCallback(() => {
     setLines((prev) => {
-      if (clamped === 0) {
-        return prev.filter((line) => line.itemId !== itemId);
+      if (prev.length > 0) {
+        recordCartEmptied();
       }
-      return prev.map((line) =>
-        line.itemId === itemId ? { ...line, quantity: clamped } : line,
-      );
+      return [];
     });
-    return true;
   }, []);
-
-  const clearCart = useCallback(() => setLines([]), []);
 
   const isAtMaxQuantity = useCallback(
-    (itemId: string) => {
-      const line = lines.find((l) => l.itemId === itemId);
+    (vertical: VerticalId, itemId: string) => {
+      const line = lines.find(
+        (l) => l.vertical === vertical && l.itemId === itemId,
+      );
       return (line?.quantity ?? 0) >= MAX_QUANTITY_PER_ITEM;
     },
     [lines],
