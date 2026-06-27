@@ -1,26 +1,88 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
+  --surface: #ffffff;
+  --surface-muted: #f6f6f6;
+  --border: #e5e5e5;
+  --sabr-green: #06c167;
+  --sabr-black: #000000;
+  --sabr-white: #ffffff;
+  --sabr-gray-100: #f6f6f6;
+  --sabr-gray-500: #6b6b6b;
+  --map-bg: #e8e8e8;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --surface: #111111;
+  --surface-muted: #1a1a1a;
+  --border: #2a2a2a;
+  --map-bg: #1a1a1a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-sabr-green: #06c167;
+  --font-sans: var(--font-inter);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: var(--map-bg);
+  font-family: inherit;
+}
+
+.driver-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.driver-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  font-size: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.pin-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.pin-marker--pickup {
+  background: #06c167;
+}
+
+.pin-marker--delivery {
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
 }
