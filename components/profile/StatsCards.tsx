@@ -63,16 +63,16 @@ export function StatsCards({ stats, orders }: StatsCardsProps) {
   ];
 
   return (
-    <div className="grid shrink-0 grid-cols-3 gap-1.5 sm:grid-cols-6 sm:gap-2">
+    <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
       {cards.map((card) => (
         <div
           key={card.label}
-          className="rounded-xl border border-border bg-surface px-2 py-2 sm:px-3 sm:py-2.5"
+          className="rounded-xl border border-border bg-surface px-2.5 py-2.5 sm:px-3"
         >
-          <p className="truncate text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:text-[10px]">
+          <p className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-gray-500 sm:truncate sm:text-[10px]">
             {card.label}
           </p>
-          <p className="mt-0.5 truncate text-lg font-bold tabular-nums leading-tight text-foreground sm:text-xl">
+          <p className="mt-1 text-base font-bold tabular-nums leading-tight text-foreground sm:mt-0.5 sm:truncate sm:text-xl">
             {card.value}
           </p>
         </div>

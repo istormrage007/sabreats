@@ -51,7 +51,7 @@ function OrderContentInner({
   }
 
   return (
-    <div className="mx-auto flex w-full min-w-0 max-w-3xl flex-1 flex-col px-4 py-3">
+    <div className="mx-auto w-full min-w-0 max-w-3xl px-3 py-3 sm:px-4 md:flex md:min-h-0 md:flex-1 md:flex-col">
       <div className="mb-2 flex shrink-0 justify-end">
         <Link
           href="/profile"

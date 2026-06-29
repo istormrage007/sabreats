@@ -43,6 +43,26 @@ body {
   scrollbar-gutter: stable;
 }
 
+.activity-heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 11px);
+  grid-template-rows: repeat(7, 11px);
+  grid-auto-flow: column;
+  width: max-content;
+}
+
+@media (min-width: 768px) {
+  .activity-heatmap-grid {
+    grid-template-columns: repeat(16, minmax(0, 1fr));
+    grid-template-rows: repeat(7, minmax(0, 1fr));
+    width: 100%;
+  }
+}
+
+.heatmap-scroll {
+  scrollbar-width: thin;
+}
+
 .leaflet-container {
   height: 100%;
   width: 100%;

@@ -103,8 +103,8 @@ function CheckoutInner() {
   };
 
   return (
-    <div className="mx-auto max-w-lg space-y-6 px-4 py-8">
-      <h1 className="text-2xl font-bold">{copy.checkoutPageTitle}</h1>
+    <div className="mx-auto max-w-lg space-y-5 px-3 py-6 sm:space-y-6 sm:px-4 sm:py-8">
+      <h1 className="text-xl font-bold sm:text-2xl">{copy.checkoutPageTitle}</h1>
 
       <CheckoutSummary lines={cartLines} subtotal={subtotal} />
 

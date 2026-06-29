@@ -2,7 +2,7 @@ import { ProfileDashboard } from "@/components/profile/ProfileDashboard";
 
 export default function ProfilePage() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="md:flex md:min-h-0 md:flex-1 md:flex-col">
       <ProfileDashboard />
     </div>
   );

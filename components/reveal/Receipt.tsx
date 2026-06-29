@@ -12,7 +12,7 @@ export function Receipt({ order }: ReceiptProps) {
   const copy = useVerticalCopy().order;
 
   return (
-    <div className="mx-auto max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-xl">
+    <div className="mx-auto max-w-lg rounded-2xl border border-border bg-surface p-4 shadow-xl sm:p-6">
       <div className="border-b border-border pb-4 text-center">
         <h2 className="text-2xl font-bold">{copy.receiptHeading}</h2>
         <p className="mt-1 text-sm text-gray-500">

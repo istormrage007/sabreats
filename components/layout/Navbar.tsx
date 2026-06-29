@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { MobileNavDrawer } from "@/components/layout/MobileNavDrawer";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import {
   addressPillAriaLabel,
   cartButtonAriaLabel,
   cartButtonLabel,
   logoText,
+  mobileNavOpenAriaLabel,
   navEatsLabel,
   navFlixComingSoonLabel,
   navFlixLabel,
@@ -62,6 +65,22 @@ function ProfileIcon() {
   );
 }
 
+function HamburgerIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  );
+}
+
 function ProfileLink({ className }: { className: string }) {
   const trackingOrders = useTrackingOrders();
   const hasTracking = trackingOrders.length > 0;
@@ -87,18 +106,14 @@ function NavVerticalItem({
   label,
   href,
   active,
-  compact,
 }: {
   vertical: VerticalId;
   label: string;
   href: string;
   active: boolean;
-  compact?: boolean;
 }) {
   const enabled = isVerticalEnabled(vertical);
-  const baseClass = compact
-    ? "shrink-0 rounded-full px-3 py-1.5 text-xs font-medium"
-    : "rounded-full px-3 py-1.5 text-sm font-medium";
+  const baseClass = "rounded-full px-3 py-1.5 text-sm font-medium";
 
   if (!enabled) {
     return (
@@ -120,9 +135,7 @@ function NavVerticalItem({
       className={`${baseClass} transition-colors ${
         active
           ? "bg-foreground text-background"
-          : compact
-            ? "bg-surface-muted text-gray-500 dark:text-zinc-400"
-            : "text-gray-500 hover:text-foreground dark:text-zinc-400"
+          : "text-gray-500 hover:text-foreground dark:text-zinc-400"
       }`}
     >
       {label}
@@ -131,9 +144,10 @@ function NavVerticalItem({
 }
 
 export function Navbar() {
-  const { itemCount, openDrawer } = useCart();
+  const { itemCount, openDrawer, isDrawerOpen } = useCart();
   const addressLabel = useAddressPill();
   const pathname = usePathname();
+  const [navOpen, setNavOpen] = useState(false);
 
   const isVerticalActive = (href: string) => pathname === href;
   const isProfileActive = pathname === "/profile";
@@ -143,67 +157,40 @@ export function Navbar() {
       ? "bg-sabr-green text-white"
       : "bg-surface-muted text-foreground hover:bg-surface-muted/80";
 
+  const closeNav = useCallback(() => setNavOpen(false), []);
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      setNavOpen(false);
+    }
+  }, [isDrawerOpen]);
+
+  const handleOpenCart = () => {
+    setNavOpen(false);
+    openDrawer();
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-surface">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:py-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="shrink-0 text-xl font-bold tracking-tight text-foreground"
-          >
-            {logoText}
-          </Link>
+      <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:px-4 md:py-4">
+        <button
+          type="button"
+          onClick={() => setNavOpen(true)}
+          aria-label={mobileNavOpenAriaLabel}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-surface-muted md:hidden"
+        >
+          <HamburgerIcon />
+        </button>
 
-          <nav
-            className="hidden items-center gap-1 md:flex"
-            aria-label="Vertical categories"
-          >
-            {navItems.map(({ vertical, label, href }) => (
-              <NavVerticalItem
-                key={vertical}
-                vertical={vertical}
-                label={label}
-                href={href}
-                active={isVerticalActive(href)}
-              />
-            ))}
-          </nav>
-
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              aria-label={addressPillAriaLabel}
-              title={addressLabel}
-              className="flex max-w-[140px] items-center gap-1.5 truncate rounded-full bg-surface-muted px-3 py-2.5 text-[0.8125rem] font-medium text-foreground sm:max-w-xs sm:px-4"
-            >
-              <LocationPinIcon />
-              <span className="truncate">{addressLabel}</span>
-            </button>
-
-            <ProfileLink
-              className={`hidden h-10 w-10 rounded-full sm:inline-flex ${profileClass(isProfileActive)}`}
-            />
-
-            <ThemeToggle />
-
-            <button
-              type="button"
-              onClick={openDrawer}
-              aria-label={cartButtonAriaLabel}
-              className="relative shrink-0 rounded-full bg-black px-5 py-2.5 text-sm font-medium text-white dark:bg-white dark:text-black"
-            >
-              {cartButtonLabel}
-              {itemCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-sabr-green px-1 text-xs font-bold text-white">
-                  {itemCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
+        <Link
+          href="/"
+          className="shrink-0 text-lg font-bold tracking-tight text-foreground sm:text-xl"
+        >
+          {logoText}
+        </Link>
 
         <nav
-          className="flex gap-1 overflow-x-auto pb-0.5 md:hidden"
+          className="hidden items-center gap-1 md:flex"
           aria-label="Vertical categories"
         >
           {navItems.map(({ vertical, label, href }) => (
@@ -213,14 +200,49 @@ export function Navbar() {
               label={label}
               href={href}
               active={isVerticalActive(href)}
-              compact
             />
           ))}
-          <ProfileLink
-            className={`h-8 w-8 shrink-0 rounded-full ${profileClass(isProfileActive)}`}
-          />
         </nav>
+
+        <div className="ml-auto flex min-w-0 items-center gap-1.5 sm:gap-3">
+          <button
+            type="button"
+            aria-label={addressPillAriaLabel}
+            title={addressLabel}
+            className="hidden min-w-0 max-w-xs items-center gap-1.5 truncate rounded-full bg-surface-muted px-4 py-2.5 text-[0.8125rem] font-medium text-foreground md:flex"
+          >
+            <LocationPinIcon />
+            <span className="truncate">{addressLabel}</span>
+          </button>
+
+          <ProfileLink
+            className={`hidden h-10 w-10 rounded-full md:inline-flex ${profileClass(isProfileActive)}`}
+          />
+
+          <div className="md:hidden">
+            <ThemeToggle compact />
+          </div>
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleOpenCart}
+            aria-label={cartButtonAriaLabel}
+            className="relative shrink-0 rounded-full bg-black px-3.5 py-2 text-xs font-medium text-white dark:bg-white dark:text-black sm:px-5 sm:py-2.5 sm:text-sm"
+          >
+            {cartButtonLabel}
+            {itemCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-sabr-green px-1 text-xs font-bold text-white">
+                {itemCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
+
+      <MobileNavDrawer isOpen={navOpen} onClose={closeNav} />
     </header>
   );
 }

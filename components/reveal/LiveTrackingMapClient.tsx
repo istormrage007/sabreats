@@ -231,7 +231,7 @@ export default function LiveTrackingMapClient({
     : createDriverIcon(0);
 
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-3">
+    <div className="flex w-full min-w-0 flex-col gap-3 md:min-h-0 md:flex-1">
       <div className="flex shrink-0 items-baseline justify-between gap-4">
         <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
           {copy.trackingPageTitle}
@@ -248,7 +248,7 @@ export default function LiveTrackingMapClient({
         </p>
       )}
 
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm md:min-h-0 md:flex-1">
         <div className="min-w-0 shrink-0 border-b border-border px-4 py-4 sm:px-5">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
             <div className="min-w-0">
@@ -256,7 +256,7 @@ export default function LiveTrackingMapClient({
                 {copy.etaLabel}
               </p>
               <p className="mt-1 flex items-baseline gap-1.5">
-                <span className="inline-flex w-[2.5ch] shrink-0 justify-start text-4xl font-bold tabular-nums tracking-tight text-foreground sm:text-5xl">
+                <span className="inline-flex w-[2.5ch] shrink-0 justify-start text-3xl font-bold tabular-nums tracking-tight text-foreground sm:text-5xl">
                   {minutesLeft}
                 </span>
                 <span className="shrink-0 text-base font-medium text-gray-500 dark:text-zinc-400 sm:text-lg">
@@ -292,7 +292,7 @@ export default function LiveTrackingMapClient({
           </p>
         </div>
 
-        <div className="relative min-h-48 min-w-0 flex-1">
+        <div className="relative h-[42dvh] min-h-[200px] min-w-0 md:min-h-48 md:flex-1">
           <MapContainer
             center={[mapCenter.lat, mapCenter.lng]}
             zoom={14}

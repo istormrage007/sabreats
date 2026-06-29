@@ -24,3 +24,7 @@ export const cartButtonAriaLabel = "Open cart";
 export const currencySymbol = "₹";
 export const themeToggleLightAriaLabel = "Switch to light mode";
 export const themeToggleDarkAriaLabel = "Switch to dark mode";
+export const mobileNavOpenAriaLabel = "Open menu";
+export const mobileNavCloseAriaLabel = "Close menu";
+export const mobileNavDrawerTitle = "Menu";
+export const mobileNavProfileLabel = "Profile";

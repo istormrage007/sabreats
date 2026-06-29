@@ -41,7 +41,7 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
   const slide = slides[activeIndex]!;
 
   return (
-    <section className="relative aspect-[16/9] max-h-[420px] w-full overflow-hidden rounded-2xl">
+    <section className="relative aspect-[5/4] max-h-[min(68vw,300px)] w-full overflow-hidden rounded-xl sm:aspect-[16/9] sm:max-h-[420px] sm:rounded-2xl">
       {slides.map((s, index) => (
         <Image
           key={s.vertical}
@@ -58,17 +58,17 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-transparent" />
 
-      <div className="absolute left-4 top-4 sm:left-6 sm:top-6">
-        <span className="rounded-full bg-sabr-green px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
+      <div className="absolute left-3 top-3 sm:left-6 sm:top-6">
+        <span className="rounded-full bg-sabr-green px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:px-3 sm:py-1 sm:text-xs">
           {slide.verticalLabel}
         </span>
       </div>
 
-      <div className="absolute bottom-0 left-0 p-6 sm:p-10">
-        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+      <div className="absolute bottom-0 left-0 right-0 p-4 pb-10 sm:p-10 sm:pb-10">
+        <h1 className="text-xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
           {slide.tagline}
         </h1>
-        <p className="mt-2 max-w-lg text-sm text-white/90 sm:text-lg">
+        <p className="mt-1 max-w-lg text-xs leading-snug text-white/90 sm:mt-2 sm:text-lg">
           {slide.subtitle}
         </p>
       </div>
@@ -91,7 +91,7 @@ export function HeroCarousel({ slides }: HeroCarouselProps) {
           >
             ›
           </button>
-          <div className="absolute bottom-4 right-4 flex items-center gap-2 sm:bottom-6 sm:right-6">
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 sm:bottom-6 sm:right-6 sm:gap-2">
             {slides.map((s, index) => (
               <button
                 key={s.vertical}

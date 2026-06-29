@@ -49,7 +49,7 @@ export function MenuItemCard({ item }: MenuItemCardProps) {
         </span>
       </div>
       <div className="mt-3 flex flex-1 flex-col gap-1">
-        <h3 className="text-base font-semibold leading-tight text-foreground">
+        <h3 className="text-sm font-semibold leading-tight text-foreground sm:text-base">
           {item.name}
         </h3>
         <p className="line-clamp-2 text-sm text-gray-500">{item.description}</p>

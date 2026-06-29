@@ -33,15 +33,8 @@ export function ActivityHeatmap({ orders }: ActivityHeatmapProps) {
       <h2 className="mb-2 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gray-500 sm:text-xs">
         {activityHeatmapLabel}
       </h2>
-      <div className="flex min-h-0 flex-1 items-center overflow-hidden">
-        <div
-          className="grid h-full max-h-full w-full gap-0.5"
-          style={{
-            gridTemplateColumns: `repeat(${WEEKS}, minmax(0, 1fr))`,
-            gridTemplateRows: "repeat(7, minmax(0, 1fr))",
-            gridAutoFlow: "column",
-          }}
-        >
+      <div className="heatmap-scroll -mx-0.5 flex min-h-0 flex-1 items-center overflow-x-auto px-0.5 md:mx-0 md:overflow-hidden md:px-0">
+        <div className="activity-heatmap-grid h-[5.5rem] gap-0.5 md:h-full md:max-h-full md:w-full">
           {days.map((day) => (
             <div
               key={day.date}

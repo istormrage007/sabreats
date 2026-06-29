@@ -62,7 +62,7 @@ export function StorefrontContent({ vertical }: StorefrontContentProps) {
   }, [configs, activeCategories]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 py-6">
+    <div className="mx-auto max-w-7xl space-y-6 px-3 py-4 sm:space-y-8 sm:px-4 sm:py-6">
       {capMessage && (
         <div
           className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-full bg-black px-5 py-2 text-sm text-white shadow-lg"
@@ -84,7 +84,7 @@ export function StorefrontContent({ vertical }: StorefrontContentProps) {
       {isMixed ? (
         <section className="space-y-4">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-foreground">
+            <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
               {mixedStorefrontTitle}
             </h2>
             <p className="mt-1 text-sm text-gray-500">{mixedStorefrontSubtitle}</p>
@@ -94,7 +94,7 @@ export function StorefrontContent({ vertical }: StorefrontContentProps) {
       ) : (
         sections.map((section) => (
           <section key={section.vertical} className="space-y-4">
-            <h2 className="text-xl font-bold tracking-tight text-foreground">
+            <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
               {section.heading}
             </h2>
             <CategoryFilter

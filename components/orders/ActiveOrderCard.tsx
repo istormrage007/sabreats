@@ -22,7 +22,7 @@ export function ActiveOrderCard({ order }: ActiveOrderCardProps) {
   return (
     <Link
       href={`/order/${order.orderNumber}`}
-      className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 transition-colors hover:border-sabr-green/40 hover:bg-surface-muted sm:px-4 sm:py-3"
+      className="flex flex-col gap-2.5 rounded-xl border border-border bg-surface px-3 py-2.5 transition-colors hover:border-sabr-green/40 hover:bg-surface-muted sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-3"
     >
       <div className="min-w-0">
         <p className="text-sm font-semibold text-foreground">
@@ -36,8 +36,8 @@ export function ActiveOrderCard({ order }: ActiveOrderCardProps) {
           {order.total}
         </p>
       </div>
-      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-        <div className="text-right">
+      <div className="flex items-center justify-between gap-2 sm:shrink-0 sm:justify-end sm:gap-3">
+        <div className="text-left sm:text-right">
           <p className="text-xl font-bold tabular-nums leading-none text-sabr-green sm:text-2xl">
             {minutesLeft}
           </p>

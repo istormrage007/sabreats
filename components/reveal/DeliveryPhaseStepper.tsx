@@ -41,7 +41,7 @@ export function DeliveryPhaseStepper({ phase }: DeliveryPhaseStepperProps) {
                 }`}
               />
               <span
-                className={`truncate text-center text-[10px] font-medium leading-tight sm:text-xs ${
+                className={`truncate text-center text-[9px] font-medium leading-tight sm:text-xs ${
                   active
                     ? "text-foreground"
                     : completed
